@@ -78,7 +78,7 @@ public class JDBConnect {
 			JSP에서는 내장객체를 즉시 사용할 수 있지만 Java에서는 매개변수를 통해
 			전달받은 후 사용할 수 있다. DB연결은 매우 빈번히 발생되는 업무로 
 			컨텍스트 초기화 파라미터를 JSP에서 가져오는것보다는 훨씬 효율적이다.
-			 * */
+			*/
 			String driver = application.getInitParameter("OracleDriver");
 			Class.forName(driver);
 			String url = application.getInitParameter("OracleURL");
@@ -92,7 +92,6 @@ public class JDBConnect {
 			e.printStackTrace();
 		}
 	}
-
 	
 	
 	
