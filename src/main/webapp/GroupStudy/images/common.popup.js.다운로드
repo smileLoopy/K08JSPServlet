@@ -1,0 +1,236 @@
+/* popup 부모창에 data 전달하는 함수*/
+function popEvent(rtrnTrg, datas){	
+	if(datas.length > 0){
+        if(!window.opener) {
+           	("데이터를 전달할 부모창이 없습니다.");
+            return;
+        }else{
+            window.opener.focus();
+        }
+        
+        // 이벤트 생성
+        var selectEvent = $.Event(rtrnTrg);
+        // 이벤트 전송 
+        // 첫번째 파라미터 : 이벤트 객체
+        // 두번째 파라미너 : 이벤트 데이터 목록
+        window.opener.$(window.opener.document).trigger(selectEvent, [ datas ]);
+        self.close();
+    }else{
+        alert("선택된 정보가 없습니다.");
+    }
+}
+
+
+
+/*******************************************************************
+ * Function Name : gfn_openPopupPost
+ * Description   : 팝업 출력 (POST)
+ * Parameter     : sFormName 폼이름
+ * Parameter     : oParameter 폼에 담길 파라미터
+ * Parameter     : sName 팝업이름
+ * Parameter     : sUrl 팝업 url
+ * Parameter     : iWidth 가로길이
+ * Parameter     : iHeight 세로길이
+ * Parameter     : oOptions 옵션
+ * History       : 2018. 09. 01. /  / 최초작성
+ *******************************************************************/
+function gfn_openPopupPost(sFormName, oParameter, sName, sUrl, iWidth, iHeight, oOptions) {
+    var form = gfn_createForm(sFormName, "POST", sUrl, sName);
+    if (oParameter) {
+    	if($.type(oParameter) == "array"){
+    		form = gfn_addArrayInput(form, oParameter);
+    	}else{
+    		jQuery.each(oParameter, function(name, value) {
+    			form = gfn_addInput(form, name, value);
+    		});
+    	}
+            
+        
+    }
+    //csrf
+    
+    //csrf
+    if($("meta[name='_csrf_parameter']").attr("content") != undefined){
+    	var input = document.createElement("input");
+        input.type = "hidden";
+        input.name = $("meta[name='_csrf_parameter']").attr("content");
+        input.value = $("meta[name='_csrf']").attr("content");
+        
+        form.insertBefore(input, null);
+    }
+    
+    
+    document.body.insertBefore(form, null);
+    var _oPopup = gfn_openPopup(sName, "", iWidth, iHeight, oOptions);
+    form.submit();
+    document.body.removeChild(form);
+    _oPopup.focus();
+    return _oPopup;
+}
+
+/*******************************************************************
+ * Function Name : gfn_createForm
+ * Description   : Form 생성
+ * History       : 2018. 09. 01. /  / 최초작성
+ *******************************************************************/
+function gfn_createForm(frmName, frmMethod, frmAction, frmTarget) {
+    var form = document.createElement("form");
+    form.name = frmName;
+    form.id = frmName;
+    form.method = frmMethod;
+    form.action = frmAction;
+    form.target = frmTarget;
+    return form;
+}
+
+
+/*******************************************************************
+ * Function Name : gfn_addInput
+ * Description   : Input 생성
+ * History       : 2018. 09. 01. /  / 최초작성
+ *******************************************************************/
+function gfn_addInput(form, inputName, inputValue) {
+	var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = inputName;
+    input.value = inputValue;
+    form.insertBefore(input, null);
+
+    return form;
+}
+
+/*******************************************************************
+ * Function Name : gfn_addInput
+ * Description   : Input 생성
+ * History       : 2018. 09. 01. /  / 최초작성
+ *******************************************************************/
+function gfn_addArrayInput(form, oParameter) {
+	jQuery.each(oParameter, function(idx, subParameter) {
+		jQuery.each(subParameter, function(inputName, inputValue){
+			var input = document.createElement("input");
+		    input.type = "hidden";
+		    input.name = inputName;
+		    input.value = inputValue;
+		    form.insertBefore(input, null);
+		});
+	});
+    return form;
+}
+
+
+/*******************************************************************
+ * Function Name : gfn_openPopup
+ * Description   : 팝업 출력
+ * Parameter     : sName 팝업이름
+ * Parameter     : sUrl 팝업 url
+ * Parameter     : iWidth 가로길이
+ * Parameter     : iHeight 세로길이
+ * Parameter     : oOptions 옵션
+ * History       : 2018. 09. 01. /  / 최초작성
+ *******************************************************************/
+function gfn_openPopup(sName, sUrl, iWidth, iHeight, oOptions) {
+
+    /**
+     * 팝업 기본 설정
+     * - 브라우저에 따라 적용 안되는 옵션 있음. // TODO : 옵션 확인
+     */
+    var defaults = {
+        // width
+        width : null,
+        // height
+        height : null,
+        // top
+        top : null,
+        // left
+        left : null,
+        // 상태표시줄
+        status : null,
+        // 툴바
+        toolbar : null,
+        // 주소표시줄
+        location : null,
+        // 메뉴바
+        menubar : null,
+        // 스크롤바
+        scrollbars : null,
+        // 풀스크린
+        // fullscreen : "no",
+        // 채널모드 (전체화면?)
+        channelmode : "no",
+        // 크기조절
+        resizable : "yes"
+    };
+
+    if(oOptions!=null && oOptions.indexOf("resizable=")>=0) {
+    	iResizable = oOptions.substring(oOptions.indexOf("resizable=")+1, oOptions.length);
+        oOptions = jQuery.extend({}, oOptions, {
+            width : iWidth,
+            height : iHeight,
+            resizable : iResizable
+        });
+    } else {
+        if (!oOptions) {
+            oOptions = jQuery.extend({}, oOptions, {
+                width : iWidth,
+                height : iHeight
+            });
+        } else {
+            oOptions = jQuery.extend({}, JSON.parse(oOptions), {
+                width : iWidth,
+                height : iHeight
+            });
+        }
+    }
+
+    // 모니터의 가운데로 출력되도록 위치 계산
+    if (oOptions.width > 0 && oOptions.height > 0) {
+
+        var dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : screen.left;
+
+        var width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+        var height = window.screen.availHeight;
+
+        oOptions.left = ((width / 2) - (oOptions.width / 2)) + dualScreenLeft;
+        oOptions.top = ((height / 2) - (oOptions.height / 2));
+    }
+
+    var _oPopup;
+    var _oOptions = jQuery.extend({}, defaults, oOptions);
+    var _sOptions = makeOptionString(_oOptions);
+
+    _oPopup = window.open(sUrl, sName, _sOptions);
+    _oPopup.focus();
+    return _oPopup;
+
+    // 옵션 문자열 생성
+    function makeOptionString(o) {
+        var str = "";
+        jQuery.each(defaults, function(name, value) {
+            if (o[name]) {
+                str += "," + name + "=" + o[name];
+            }
+        });
+        return str;
+    }
+}
+
+
+$.fn.serializeObject = function(){
+	var obj = null;
+	try{
+		
+		var arr = this.serializeArray();
+		if(arr) {
+			obj = {};
+			$.each(arr, function(){
+				obj[this.name] = this.value;
+			});
+		}
+		
+	}catch (e) {
+		jAlert(e.message, null, "JSON 파싱에러");
+	}finally {
+		//return this;
+	}
+	return obj;
+}

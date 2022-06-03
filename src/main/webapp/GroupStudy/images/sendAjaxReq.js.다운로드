@@ -1,0 +1,130 @@
+var progressBarUseAt = true; 
+
+var ajaxSend = $(document).ajaxSend(function(event, jqxhr, settings) {
+	if(progressBarUseAt){
+		$.paidLoading.startFullScreen();
+	}
+	
+	var token = $("meta[name='_csrf']").attr("content");
+	var header = $("meta[name='_csrf_header']").attr("content");
+	jqxhr.setRequestHeader("AJAX", "true");
+	if(header != undefined){
+		jqxhr.setRequestHeader(header, token);
+	}
+}).ajaxStart(function(event) {
+
+}).ajaxError(function(event, jqxhr, settings) {
+	
+	var retMsg="";
+	
+	if(undefined != jqxhr.responseJSON && undefined != jqxhr.responseJSON.retMsg){
+		retMsg = jqxhr.responseJSON.retMsg;
+	}
+	
+	var param = {
+			message : retMsg,
+			status : jqxhr.status
+		};
+	if(jqxhr.readyState != 0 && jqxhr.status != 0){
+		if(jqxhr.status == "401" || jqxhr.status == "403"){
+			jAlert("접속이 종료되었거나 비정상적인 접근입니다.<br />메인화면으로 이동합니다.", function() {
+				$(location).attr("href", "/index.npaid");
+			});
+		}else if (jqxhr.status == "413") {
+			jAlert("첨부파일 용량이 90MB를 초과하였습니다.<br />확인 후 다시 첨부하여 주십시오.", function() {
+			});
+		}else{
+			jAlert("일시적인 오류로 서비스를 이용하실 수 없습니다.<br />잠시 후 다시 시도하여 주십시오.", function() {
+			});
+		}
+	} 
+    $.paidLoading.remove();
+	
+	
+}).ajaxStop(function() {
+	$.paidLoading.remove();
+}).ajaxComplete(function(event, xhr, options){
+});
+
+(function($) {
+	$.sendAjaxReq = {
+		start : function(options) {
+			$.ajax(options);
+		},
+		setOptions : function(url, method, param, async, successhandler, errorhandler, loadUseAt, dataType ) {
+			if(dataType == undefined || dataType == ""){
+				dataType = "JSON";
+			}
+			
+			if(!loadUseAt){
+				progressBarUseAt = loadUseAt;
+			}else{
+				progressBarUseAt = true;
+			}
+			
+			var options = {
+				url : url,
+				type : method,
+				data : param,
+				dataType : dataType,
+				async : async,
+				success : successhandler,
+				error : errorhandler
+			}
+			return options;
+		}
+	}
+
+	$.sendAjaxJson = {
+		start : function(options) {
+			$.ajax(options);
+		},
+		setOptions : function(url, method, param, async, successhandler, errorhandler, loadUseAt, dataType) {
+			if(dataType == undefined || dataType == ""){
+				dataType = "JSON";
+			}
+			if(!loadUseAt){
+				progressBarUseAt = loadUseAt;
+			}else{
+				progressBarUseAt = true;
+			}
+			
+			var options = {
+				url : url,
+				type : method,
+				data : param,
+				dataType : dataType,
+				contentType : 'application/json; charset=UTF-8',
+				async : async,
+				success : successhandler,
+				error : errorhandler
+			}
+			return options;
+		}
+	}	
+
+	$.sendAjaxSumit = {
+
+		start : function(obj, options) {
+			$(obj).ajaxSubmit(options);
+		},
+
+		setOptions : function(successhandler, errorhandler, completehandler, loadUseAt) {
+			if(!loadUseAt){
+				progressBarUseAt = loadUseAt;
+			}else{
+				progressBarUseAt = true;
+			}
+			
+			var options = {
+
+				type : 'post',
+				dataType : 'json',
+				success : successhandler,
+				error : errorhandler,
+				complete : completehandler
+			}
+			return options;
+		}
+	}
+})(jQuery);

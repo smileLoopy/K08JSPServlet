@@ -1,0 +1,343 @@
+var v_paid_nep_header_allMenu_selector = '';
+v_paid_nep_header_allMenu_selector += '#gnb [data-mbr-aces-prms-yn],';
+v_paid_nep_header_allMenu_selector += '#allMenu [data-mbr-aces-prms-yn],';
+v_paid_nep_header_allMenu_selector += '#mMenu [data-mbr-aces-prms-yn],';
+v_paid_nep_header_allMenu_selector += '#lnb [data-mbr-aces-prms-yn]';
+
+function fn_paid_nep_header_allMenu_test(acntYn) {
+	// return acntYn;
+
+	// 아이디/패스워드 로그인, 디지털원패스 아이디로 로그인
+	// 국민신문고 계정 여부
+	// 국민생각함 계정 여부
+	// 전문가 계정 여부
+	// acntYn.epAcntYn = 'Y'; // 국민신문고 계정 여부
+	// acntYn.mibxAcntYn = 'Y'; // 국민생각함 계정 여부
+	// acntYn.xprtAcntYn = 'N'; // 전문가 계정 여부
+	// acntYn.pbsvAcntYn = ''; // 공무원 계정 여부
+	// acntYn.nmbrAcntYn = ''; // 비회원 계정 여부
+
+	// SNS 간편 로그인
+	// 국민생각함 계정 여부
+	// acntYn.epAcntYn = ''; // 국민신문고 계정 여부
+	// acntYn.mibxAcntYn = 'Y'; // 국민생각함 계정 여부
+	// acntYn.xprtAcntYn = ''; // 전문가 계정 여부
+	// acntYn.pbsvAcntYn = ''; // 공무원 계정 여부
+	// acntYn.nmbrAcntYn = ''; // 비회원 계정 여부
+
+	// 공무원 인증
+	// 공무원 계정 여부
+	acntYn.epAcntYn = ''; // 국민신문고 계정 여부
+	acntYn.mibxAcntYn = ''; // 국민생각함 계정 여부
+	acntYn.xprtAcntYn = ''; // 전문가 계정 여부
+	acntYn.pbsvAcntYn = 'Y'; // 공무원 계정 여부
+	acntYn.nmbrAcntYn = ''; // 비회원 계정 여부
+
+	// 아이핀, 공인인증서, 휴대전화, 외국인등록번호
+	// 비회원 계정 여부
+	// acntYn.epAcntYn = ''; // 국민신문고 계정 여부
+	// acntYn.mibxAcntYn = ''; // 국민생각함 계정 여부
+	// acntYn.xprtAcntYn = ''; // 전문가 계정 여부
+	// acntYn.pbsvAcntYn = ''; // 공무원 계정 여부
+	// acntYn.nmbrAcntYn = 'Y'; // 비회원 계정 여부
+
+	return acntYn;
+}
+
+function fn_paid_nep_header_allMenu_acesPrmsYn(acntYn) {
+	// return;
+
+	// console.log('fn_paid_nep_header_allMenu_acesPrmsYn');
+
+	// acntYn = fn_paid_nep_header_allMenu_test(acntYn);
+
+	// console.log('acntYn 계정 여부:', acntYn);
+	// console.log('acntYn.epAcntYn 국민신문고 계정 여부:', acntYn.epAcntYn);
+	// console.log('acntYn.mibxAcntYn 국민생각함 계정 여부:', acntYn.mibxAcntYn);
+	// console.log('acntYn.xprtAcntYn 전문가 계정 여부:', acntYn.xprtAcntYn);
+	// console.log('acntYn.pbsvAcntYn 공무원 계정 여부:', acntYn.pbsvAcntYn);
+	// console.log('acntYn.nmbrAcntYn 비회원 계정 여부:', acntYn.nmbrAcntYn);
+
+	// 국민제안 > 공무원제안
+	$('#gnb [data-menu-id="B0003"]').hide();
+	$('#allMenu [data-menu-id="B0003"]').hide();
+	$('#mMenu [data-menu-id="B0003"]').hide();
+	$('#lnb [data-menu-id="B0003"]').hide();
+
+	$('#gnb [data-menu-id="G0004"]').hide();
+	$('#allMenu [data-menu-id="G0004"]').hide();
+	$('#mMenu [data-menu-id="G0004"]').hide();
+	$('#lnb [data-menu-id="G0004"]').hide();
+
+	$('#gnb [data-menu-id="D0002"]').hide();
+	$('#allMenu [data-menu-id="D0002"]').hide();
+	$('#mMenu [data-menu-id="D0002"]').hide();
+	$('#lnb [data-menu-id="D0002"]').hide();
+	
+	if (!acntYn.epAcntYn && !acntYn.mibxAcntYn && !acntYn.xprtAcntYn
+			&& !acntYn.pbsvAcntYn && !acntYn.nmbrAcntYn) {
+		// 누구나
+		// fn_paid_nep_header_allMenu_acesPrmsYn2(acntYn);
+	}
+	
+	if (acntYn.mibxAcntYn == 'Y') {
+		// 국민생각함 계정 여부
+		// fn_paid_nep_header_allMenu_acesPrmsYn_mibxAcntYn(acntYn);
+	}
+	
+	if (acntYn.pbsvAcntYn == 'Y') {
+		// 공무원 계정 여부
+		// fn_paid_nep_header_allMenu_acesPrmsYn_pbsvAcntYn(acntYn);
+
+		// 국민제안 > 공무원제안
+		$('#gnb [data-menu-id="B0003"]').show();
+		$('#allMenu [data-menu-id="B0003"]').show();
+		$('#mMenu [data-menu-id="B0003"]').show();
+		$('#lnb [data-menu-id="B0003"]').show();
+		
+		$('#gnb [data-menu-id="G0004"]').show();
+		$('#allMenu [data-menu-id="G0004"]').show();
+		$('#mMenu [data-menu-id="G0004"]').show();
+		$('#lnb [data-menu-id="G0004"]').show();
+	}
+	
+	if (acntYn.nmbrAcntYn == 'Y') {
+		// 비회원 계정 여부
+		fn_paid_nep_header_allMenu_acesPrmsYn_nmbrAcntYn(acntYn);
+	} else {
+		// 접근 권한
+		// 회원 비회원 공무원 전문가
+		// fn_paid_nep_header_allMenu_acesPrmsYn3(acntYn);
+	}
+}
+
+function fn_paid_nep_header_allMenu_acesPrmsYn2(acntYn) {
+	// console.log('fn_paid_nep_header_allMenu_acesPrmsYn2');
+
+	$(v_paid_nep_header_allMenu_selector).each(function(index, element) {
+		// console.log('index:', index);
+		// console.log('element:', element);
+
+		var acesPrmsYn = $(element).data();
+		var mbrAcesPrmsYn = acesPrmsYn.mbrAcesPrmsYn;
+		var nmbrAcesPrmsYn = acesPrmsYn.nmbrAcesPrmsYn;
+		var mibxAcesPrmsYn = acesPrmsYn.mibxAcesPrmsYn;
+		var pbsvAcesPrmsYn = acesPrmsYn.pbsvAcesPrmsYn;
+		var xprtAcesPrmsYn = acesPrmsYn.xprtAcesPrmsYn;
+
+		// console.log('mbrAcesPrmsYn 회원접근허용여부:', mbrAcesPrmsYn);
+		// console.log('nmbrAcesPrmsYn 비회원접근허용여부:', nmbrAcesPrmsYn);
+		// console.log('mibxAcesPrmsYn 국민생각함접근허용여부:', mibxAcesPrmsYn);
+		// console.log('pbsvAcesPrmsYn 공무원접근허용여부:', pbsvAcesPrmsYn);
+		// console.log('xprtAcesPrmsYn 전문가접근허용여부:', xprtAcesPrmsYn);
+
+		if (mbrAcesPrmsYn == 'Y') {
+			// 회원접근허용여부
+			fn_paid_nep_header_allMenu_hide(element);
+		}
+
+		if (nmbrAcesPrmsYn == 'Y') {
+			// 비회원접근허용여부
+			fn_paid_nep_header_allMenu_hide(element);
+		}
+
+		if (mibxAcesPrmsYn == 'Y') {
+			// 국민생각함접근허용여부
+			fn_paid_nep_header_allMenu_hide(element);
+		}
+
+		if (mibxAcesPrmsYn == 'Y') {
+			// 공무원접근허용여부
+			fn_paid_nep_header_allMenu_hide(element);
+		}
+
+		if (xprtAcesPrmsYn == 'Y') {
+			// 전문가접근허용여부
+			fn_paid_nep_header_allMenu_hide(element);
+		}
+	});
+}
+
+function fn_paid_nep_header_allMenu_acesPrmsYn3(acntYn) {
+	// console.log('fn_paid_nep_header_allMenu_acesPrmsYn3');
+
+	$(v_paid_nep_header_allMenu_selector).each(function(index, element) {
+		// console.log('index:', index);
+		// console.log('element:', element);
+
+		var acesPrmsYn = $(element).data();
+		var mbrAcesPrmsYn = acesPrmsYn.mbrAcesPrmsYn;
+		var nmbrAcesPrmsYn = acesPrmsYn.nmbrAcesPrmsYn;
+		var mibxAcesPrmsYn = acesPrmsYn.mibxAcesPrmsYn;
+		var pbsvAcesPrmsYn = acesPrmsYn.pbsvAcesPrmsYn;
+		var xprtAcesPrmsYn = acesPrmsYn.xprtAcesPrmsYn;
+
+		// console.log('mbrAcesPrmsYn 회원접근허용여부:', mbrAcesPrmsYn);
+		// console.log('nmbrAcesPrmsYn 비회원접근허용여부:', nmbrAcesPrmsYn);
+		// console.log('mibxAcesPrmsYn 국민생각함접근허용여부:', mibxAcesPrmsYn);
+		// console.log('pbsvAcesPrmsYn 공무원접근허용여부:', pbsvAcesPrmsYn);
+		// console.log('xprtAcesPrmsYn 전문가접근허용여부:', xprtAcesPrmsYn);
+
+		if (acntYn.epAcntYn == 'Y' || acntYn.mibxAcntYn == 'Y') {
+			// 국민신문고 계정 여부, 국민생각함 계정 여부
+			if (mbrAcesPrmsYn == 'Y') {
+				// 회원접근허용여부
+				// fn_paid_nep_header_allMenu_show(element);
+				// } else {
+				// fn_paid_nep_header_allMenu_hide(element);
+			}
+		}
+
+		if (acntYn.nmbrAcntYn == 'Y') {
+			// 비회원 계정 여부
+			if (nmbrAcesPrmsYn == 'Y') {
+				// 비회원접근허용여부
+				// fn_paid_nep_header_allMenu_show(element);
+				// } else {
+				// fn_paid_nep_header_allMenu_hide(element);
+			}
+		}
+
+		if (acntYn.pbsvAcntYn == 'Y') {
+			// 공무원 계정 여부
+			if (pbsvAcesPrmsYn == 'Y') {
+				// 공무원접근허용여부
+				// fn_paid_nep_header_allMenu_show(element);
+				// } else {
+				// fn_paid_nep_header_allMenu_hide(element);
+			}
+		}
+
+		if (acntYn.xprtAcntYn == 'Y') {
+			// 전문가 계정 여부
+			if (xprtAcesPrmsYn != 'Y') {
+				// 전문가접근허용여부
+				fn_paid_nep_header_allMenu_hide(element);
+			}
+		}
+	});
+}
+
+/**
+ * 비회원 계정 여부
+ * 
+ * @param acntYn
+ * @returns
+ */
+function fn_paid_nep_header_allMenu_acesPrmsYn_nmbrAcntYn(acntYn) {
+	// console.log('fn_paid_nep_header_allMenu_acesPrmsYn_nmbrAcntYn');
+
+	$('#lnb [data-menu-id="G0008"], #lnb [data-menu-id="G0009"]').hide();
+	$('#lnb [data-menu-id="G0007"] > a').css('border-bottom',
+			'1px solid #e0e0e0');
+
+	$('#mMenu [data-menu-id="G0008"], #mMenu [data-menu-id="G0009"]').hide();
+	// $('#mMenu [data-menu-id="G0006"] > a').css('border-bottom',
+	// '1px solid #f1f1f1');
+
+	// $(v_paid_nep_header_allMenu_selector).each(function(index, element) {
+	// // console.log('index:', index);
+	// // console.log('element:', element);
+	//
+	// var acesPrmsYn = $(element).data();
+	// var mbrAcesPrmsYn = acesPrmsYn.mbrAcesPrmsYn;
+	// var nmbrAcesPrmsYn = acesPrmsYn.nmbrAcesPrmsYn;
+	// var mibxAcesPrmsYn = acesPrmsYn.mibxAcesPrmsYn;
+	// var pbsvAcesPrmsYn = acesPrmsYn.pbsvAcesPrmsYn;
+	// var xprtAcesPrmsYn = acesPrmsYn.xprtAcesPrmsYn;
+	//
+	// // console.log('mbrAcesPrmsYn 회원접근허용여부:', mbrAcesPrmsYn);
+	// // console.log('nmbrAcesPrmsYn 비회원접근허용여부:', nmbrAcesPrmsYn);
+	// // console.log('mibxAcesPrmsYn 국민생각함접근허용여부:', mibxAcesPrmsYn);
+	// // console.log('pbsvAcesPrmsYn 공무원접근허용여부:', pbsvAcesPrmsYn);
+	// // console.log('xprtAcesPrmsYn 전문가접근허용여부:', xprtAcesPrmsYn);
+	//
+	// // 비회원접근허용여부
+	// if (nmbrAcesPrmsYn == 'Y') {
+	// fn_paid_nep_header_allMenu_show(element);
+	// } else {
+	// fn_paid_nep_header_allMenu_hide(element);
+	// }
+	// });
+}
+
+/**
+ * 국민생각함 계정 여부
+ * 
+ * @param acntYn
+ * @returns
+ */
+function fn_paid_nep_header_allMenu_acesPrmsYn_mibxAcntYn(acntYn) {
+	// console.log('fn_paid_nep_header_allMenu_acesPrmsYn_mibxAcntYn');
+
+	$(v_paid_nep_header_allMenu_selector).each(function(index, element) {
+		// console.log('index:', index);
+		// console.log('element:', element);
+
+		var acesPrmsYn = $(element).data();
+		var mbrAcesPrmsYn = acesPrmsYn.mbrAcesPrmsYn;
+		var nmbrAcesPrmsYn = acesPrmsYn.nmbrAcesPrmsYn;
+		var mibxAcesPrmsYn = acesPrmsYn.mibxAcesPrmsYn;
+		var pbsvAcesPrmsYn = acesPrmsYn.pbsvAcesPrmsYn;
+		var xprtAcesPrmsYn = acesPrmsYn.xprtAcesPrmsYn;
+
+		// console.log('mbrAcesPrmsYn 회원접근허용여부:', mbrAcesPrmsYn);
+		// console.log('nmbrAcesPrmsYn 비회원접근허용여부:', nmbrAcesPrmsYn);
+		// console.log('mibxAcesPrmsYn 국민생각함접근허용여부:', mibxAcesPrmsYn);
+		// console.log('pbsvAcesPrmsYn 공무원접근허용여부:', pbsvAcesPrmsYn);
+		// console.log('xprtAcesPrmsYn 전문가접근허용여부:', xprtAcesPrmsYn);
+
+		// 국민생각함접근허용여부
+		if (mibxAcesPrmsYn == 'Y') {
+			fn_paid_nep_header_allMenu_show(element);
+		} else {
+			fn_paid_nep_header_allMenu_hide(element);
+		}
+	});
+}
+
+/**
+ * 공무원 계정 여부
+ * 
+ * @param acntYn
+ * @returns
+ */
+function fn_paid_nep_header_allMenu_acesPrmsYn_pbsvAcntYn(acntYn) {
+	// console.log('fn_paid_nep_header_allMenu_acesPrmsYn_pbsvAcntYn');
+
+	$(v_paid_nep_header_allMenu_selector).each(function(index, element) {
+		// console.log('index:', index);
+		// console.log('element:', element);
+
+		var acesPrmsYn = $(element).data();
+		var mbrAcesPrmsYn = acesPrmsYn.mbrAcesPrmsYn;
+		var nmbrAcesPrmsYn = acesPrmsYn.nmbrAcesPrmsYn;
+		var mibxAcesPrmsYn = acesPrmsYn.mibxAcesPrmsYn;
+		var pbsvAcesPrmsYn = acesPrmsYn.pbsvAcesPrmsYn;
+		var xprtAcesPrmsYn = acesPrmsYn.xprtAcesPrmsYn;
+
+		// console.log('mbrAcesPrmsYn 회원접근허용여부:', mbrAcesPrmsYn);
+		// console.log('nmbrAcesPrmsYn 비회원접근허용여부:', nmbrAcesPrmsYn);
+		// console.log('mibxAcesPrmsYn 국민생각함접근허용여부:', mibxAcesPrmsYn);
+		// console.log('pbsvAcesPrmsYn 공무원접근허용여부:', pbsvAcesPrmsYn);
+		// console.log('xprtAcesPrmsYn 전문가접근허용여부:', xprtAcesPrmsYn);
+
+		// 공무원접근허용여부
+		if (pbsvAcesPrmsYn == 'Y') {
+			fn_paid_nep_header_allMenu_show(element);
+		} else {
+			fn_paid_nep_header_allMenu_hide(element);
+		}
+	});
+}
+
+function fn_paid_nep_header_allMenu_show(element) {
+	// $(element).show();
+	// $(element).css('background-color', 'blue');
+}
+
+function fn_paid_nep_header_allMenu_hide(element) {
+	// $(element).hide();
+	// $(element).css('background-color', 'red');
+	$(element).css('text-decoration', 'line-through');
+}

@@ -1,0 +1,648 @@
+$(document).ready(
+	function () {
+		$(".datepicker").on(
+			{"focus" : function() {
+//					console.log($(this).val().replace(/-/gi, ""));
+//					$(this).val($(this).val().replace(/-/gi, ""));
+					$(this).select();
+				},
+			"blur" : function() {
+				var $this= $(this);
+				setTimeout(
+					function(){
+						var inputDate = $($this).val();
+						if (fn_only_date(inputDate)) {
+							$($this).val(inputDate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+						} else {
+							jAlert("올바른 날짜 형식(yyyymmdd 또는 yyyy-MM-dd)으로 입력하십시오.",function(obj) {
+								$($this).select();
+							});
+						}
+					},500);
+				}
+			}
+		);
+		
+		$(".datepicker").datepicker({
+			showOn: "button",
+			buttonImage: "/resource/images/paid/nep/thk/common/icon_dateficker.png",
+			buttonImageOnly: false,
+			regional: "ko",
+			changeMonth: true,
+			changeYear: true,
+			dateFormat: "yy-mm-dd",
+			showButtonPanel:true
+		});
+		
+		$(".ep_num").keyup(function() {
+			if (!(event.keyCode >= 37 && event.keyCode <= 40)) {
+				var v = $(this).val().replace(/[^a-z0-9\-]/gi, '');
+				$(this).val(v.toUpperCase());
+			}
+		});
+	}
+);
+
+var i_gRemainMinute;
+var i_gRemainSecond = 7200;
+var g_haederTimer = null;// 세션 남은시간 확인
+var	isSessionPopup = false;
+
+/**
+ * 주소검색 팝업을 호출한다.
+ * 
+ * @param callbackFunc
+ * @returns
+ */
+function gfn_adrsSchPopup(callbackFunc) {
+	var param = { rtrnTrg : callbackFunc };
+//	gfn_openPopupPost("adrsSrchForm", param, "adrsSrchPop", "/paid/syscmmn/adrsSchPopup.npaid", 10, 10);
+	gfn_openPopupPost("adrsSrchForm", param, "adrsSrchPop", "/paid/syscmmn/adrsSchPopup.npaid", 10, 10, JSON.stringify({scrollbars:'yes'}));
+	
+	//gfn_openPopupPost("adrsSrchForm", param, "adrsSrchPop", "/paid/syscmmn/selectAdrSearchRnView.npaid", 600, 800);
+}
+
+/**
+ * 달력을 이용하여 기간을 입력할 때 종료일자를 시작일자 이전으로 입력하지 못하도록 제어한다.
+ * @param dateStart
+ * @param dateEnd
+ * @returns
+ */
+function cfn_dateTerm(dateStart, dateEnd){
+    $("#" + dateStart).datepicker("option", "onClose", function ( selectedDate ) {
+    	if(selectedDate.length == 8){
+    		selectedDate = selectedDate.substring(0,4)+"-"+selectedDate.substring(4,6)+"-"+selectedDate.substring(6,8);
+    	}
+        $("#"+ dateEnd).datepicker( "option", "minDate", selectedDate );
+    });
+
+    $("#" + dateEnd).datepicker("option", "onClose", function ( selectedDate ) {
+    	$("#" + dateStart).datepicker( "option", "maxDate", selectedDate );
+    });     
+}
+
+/**
+ * 이메일 선택 박스를 출력한다.
+ * @param selectEmailId 이메일 선택 select-box ID
+ * @param inputEmailId  직접입력 시 input-box의 ID
+ * @returns
+ */
+function gfn_selectEmail(selectEmailId, inputEmailId ,selectedEmailAddr) {
+	if(selectedEmailAddr!="null" && selectedEmailAddr!=""){
+		$("#" + inputEmailId).val(selectedEmailAddr);
+	}
+	$("#"+ selectEmailId).change(function(){
+		
+		//console.log($("#" + selectEmailId + " option:selected").val());
+		if($(this).val() == ""){
+			$("#" + inputEmailId).val("");
+			$("#" + inputEmailId).attr("disabled", false);
+		}else{
+			$("#" + inputEmailId).val($(this).val());
+			$("#" + inputEmailId).attr("disabled", true);
+		}
+	});
+}
+
+/**
+ * 오늘 날짜를 구하여 반환한다.
+ * TODO : 향후 시스템에서 날짜를 반환하는 형태로 변경 필요
+ * @returns
+ */
+function gfn_today() {
+	return $.datepicker.formatDate("yy-mm-dd", new Date());
+}
+
+/**
+ * 기준일자로부터 입력된 기간만큼의 이전날짜(yyyy-mm-dd)를 반환한다.
+ *    
+ * @param baseDate
+ * @param termCd  "n + [d | m | y]" 형태로 입력 30d 는 30일, 3m 은 3개월, 1y 는 1년
+ * @returns
+ */
+function gfn_preDate(baseDate, termCd) {
+	
+	var term = termCd.substring(0, termCd.length - 1);
+	var termSesn = termCd.substring(termCd.length - 1, termCd.length);
+	
+	console.log("term : " + term);
+	console.log("termSesn : " + termSesn);
+	var year = baseDate.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1')*1;
+	var month = baseDate.replace(/(\d{4})-(\d{2})-(\d{2})/, '$2')*1;
+	var date = baseDate.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3')*1;
+
+	var returnDate = new Date();
+/*	returnDate.setDate(date);
+	returnDate.setMonth((month - 1));
+	returnDate.setFullYear(year);
+	
+	if (termSesn == "d") {
+		returnDate.setDate(date - term);
+	} else if (termSesn == "m") {
+		returnDate.setMonth((month - 1) - term);
+		returnDate.setDate(date - 1);
+	} else if (termSesn == "y") {
+		returnDate.setFullYear(year - term);
+		returnDate.setDate(date - 1);
+	}*/
+	
+	if (termSesn == "d") {
+		returnDate.setFullYear(year);
+		returnDate.setMonth((month - 1));
+		returnDate.setDate(date - term);
+	} else if (termSesn == "m") {
+		console.log("year : "+year + ", month : "+month + ", date : "+date);
+		var sYear = year;
+		var sMonth = month;
+		var sDate = date;
+		var lastDay;
+		var currMonthLastDay;
+		
+		currMonthLastDay = fn_month_lastDay(month, year);
+		
+		sMonth = month - term;
+		
+		if(sMonth <= 0){
+			sMonth += 12;
+			sYear -= 1;
+		}
+		
+		lastDay = fn_month_lastDay(sMonth, sYear);
+		
+		if(date >= lastDay || date == currMonthLastDay){
+			sMonth += 1;
+			sDate = 1;
+			if(sMonth >12){
+				sMonth = 1;
+				sYear += 1;
+			}
+			
+			console.log("sYear : "+sYear + ", sMonth : "+sMonth + ", sDate : "+sDate);
+			returnDate.setFullYear(sYear);
+			returnDate.setMonth((sMonth - 1));
+			returnDate.setDate(sDate);
+		}else{
+			returnDate.setFullYear(year);
+			returnDate.setMonth((month - 1) - term);
+			returnDate.setDate(date + 1);
+		}
+		
+	} else if (termSesn == "y") {
+		returnDate.setFullYear(year - term);
+		returnDate.setMonth((month - 1));
+		returnDate.setDate(date + 1);
+	}
+	
+	var returnDateString = $.datepicker.formatDate("yy-mm-dd", returnDate);
+	return returnDateString;
+}
+
+function fn_month_lastDay(month, year){
+	var lastDay = 31;
+	
+	if(month == 2 && year%4 == 0){
+		lastDay = 29;
+	}else if(month == 2 && year%4 != 0){
+		lastDay = 28;
+	}else if(month == 4 || month == 6 || month == 9 || month == 11){
+		lastDay = 30;
+	}
+	
+	return lastDay;
+}
+
+/**
+ * 기준일자로부터 Term까지의 날짜를 계산하여 입력한다. 
+ * @param selectTermId 검색 기간 select-box ID
+ * @param baseDateId   기준일자 input-box ID
+ * @param inputDateId  계산된 날짜가 입력되어야 하는 input-box ID
+ * @returns
+ */
+function cfn_preDate(selectTermId, baseDateId, inputDateId) {
+	$("#"+ selectTermId).change(function() {
+		if($(this).val() != "") {
+			var baseDate = $("#" + baseDateId).val();
+			//console.log("기준일자 : " + baseDate);
+			if (baseDate == "") {
+				baseDate = gfn_today();
+				$("#" + baseDateId).val(baseDate);
+			}
+			//console.log("baseDate : " + baseDate);
+			$("#" + inputDateId).val(gfn_preDate(baseDate, $(this).val()));
+		}
+	});
+}
+
+/**
+ * 1depth 메뉴를 출력한다 
+ * @param menu 메뉴vo
+ * @param menuMap   메뉴맵<메뉴아이디,메뉴vo>
+ * @param subMenuMap  서브 매뉴맵<매뉴아이디,서브매뉴리스트>
+ * @param menuId  메뉴아이디 
+
+ */
+function fn_firstDpMenu(menu, menuMap, subMenuMap,menuId) {
+	var firstDpMenuStr = "";
+	var firstDpMenuList = subMenuMap['00000'];
+	var secondDpMenuList="";
+	var thirdDpMenuList="";
+	var fourthDpMenuList="";
+	
+	if (firstDpMenuList.length>0) {
+		$.each(firstDpMenuList, function(i) {
+			secondDpMenuList = subMenuMap[firstDpMenuList[i].menuId];
+			if(secondDpMenuList.length>0){
+				firstDpMenuStr += "<li>";
+				if(secondDpMenuList[0].linkUrl==null ){
+					thirdDpMenuList = subMenuMap[secondDpMenuList[0].menuId];
+					if(thirdDpMenuList[0].linkUrl==null){
+						fourthDpMenuList = subMenuMap[thirdDpMenuList[0].menuId];
+						firstDpMenuStr += "	<a name=\"firstMenu\" href=\"javascript:fn_sendMenuId('" + fourthDpMenuList[0].menuId +"','"+fourthDpMenuList[0].linkUrl+"')\">" + firstDpMenuList[i].menuNm + "</a>";
+					}else{
+						firstDpMenuStr += "	<a name=\"firstMenu\" href=\"javascript:fn_sendMenuId('" + thirdDpMenuList[0].menuId +"','"+thirdDpMenuList[0].linkUrl+"')\">" + firstDpMenuList[i].menuNm + "</a>";
+					}
+				}else{
+					firstDpMenuStr += "	<a name=\"firstMenu\" href=\"javascript:fn_sendMenuId('" + secondDpMenuList[0].menuId +"','"+secondDpMenuList[0].linkUrl+"')\">" + firstDpMenuList[i].menuNm + "</a>";
+				}
+				firstDpMenuStr += "</li>";
+			}
+		});
+	}
+	$("#firstDpMenu").children().remove();
+	$("#firstDpMenu").append(firstDpMenuStr);
+	$("#firstDpMenuNm").text('');
+	$("#firstDpMenuNm").text(menuMap[menuId].menuNm);
+}
+
+/**
+ * 2depth 메뉴를 출력한다 
+ * @param menu 메뉴vo
+ * @param menuMap   메뉴맵<메뉴아이디,메뉴vo>
+ * @param subMenuMap  서브 매뉴맵<매뉴아이디,서브매뉴리스트>
+ * @param menuId   메뉴아이디 
+ * @param menuNm   메뉴이름 
+ * @param selectedId  선택된 메뉴 아이디 
+ */
+function fn_secondDpMenu(menu, menuMap, subMenuMap, menuId, menuNm, selectedId) {
+	var secondDpMenuStr = "";
+	var secondDpMenuList = subMenuMap[menuId];
+	var thirdDpMenuList = "";
+	var fourthDpMenuList= "";
+	
+	if (secondDpMenuList.length>0) {
+		$.each(secondDpMenuList, function(i) {
+			secondDpMenuStr += "<li>";
+			secondDpMenuStr += "<a name=\"secondMenu\" ";
+			if (secondDpMenuList[i].menuId == selectedId) {
+				secondDpMenuStr += "class=\"ov\" ";
+			}
+			if(secondDpMenuList[i].linkUrl==null ){
+				thirdDpMenuList = subMenuMap[secondDpMenuList[i].menuId];
+				if(thirdDpMenuList[0].linkUrl==null){
+					fourthDpMenuList = subMenuMap[thirdDpMenuList[0].menuId];
+					secondDpMenuStr += "href=\"javascript:fn_sendMenuId('" + fourthDpMenuList[0].menuId +"','"+fourthDpMenuList[0].linkUrl+"')\">" + secondDpMenuList[i].menuNm + "</a>";
+				}else{
+					secondDpMenuStr += "href=\"javascript:fn_sendMenuId('" + thirdDpMenuList[0].menuId +"','"+thirdDpMenuList[0].linkUrl+"')\">" + secondDpMenuList[i].menuNm + "</a>";
+				}
+				
+			}else{
+				secondDpMenuStr += "href=\"javascript:fn_sendMenuId('" + secondDpMenuList[i].menuId +"','"+secondDpMenuList[i].linkUrl+"')\">" + secondDpMenuList[i].menuNm + "</a>";
+			}
+			secondDpMenuStr += "</li>";
+		});
+	}
+	$("#secondDpMenu").children().remove();
+	$("#secondDpMenu").append(secondDpMenuStr);
+	$("#secondDpMenuNm").text('');
+	$("#secondDpMenuNm").text(menuNm);
+}
+
+/**
+ * 3depth 메뉴를 출력한다 
+ * @param menu 메뉴vo
+ * @param menuMap   메뉴맵<메뉴아이디,메뉴vo>
+ * @param subMenuMap  서브 매뉴맵<매뉴아이디,서브매뉴리스트>
+ * @param menuId  메뉴아이디 
+ * @param selectedId  선택된 메뉴 아이디 
+ * @param seqNo  3depth 메뉴 순번 
+ */
+function fn_thirdDpMenu(menu, menuMap, subMenuMap, menuId,selectedId,seqNo) {
+	var thirdDpMenuStr = "";
+	var thirdDpMenuList = subMenuMap[menuId];
+	
+	if (thirdDpMenuList.length>0) {
+		$.each( thirdDpMenuList, function(i) {
+			var thirdMenuId = thirdDpMenuList[i].menuId;
+			var fourthDpMenuList = subMenuMap[thirdMenuId];
+
+			thirdDpMenuStr += "<li ";
+			thirdDpMenuStr+="class=\"group_title\">";
+			thirdDpMenuStr += "<a name=\"thirdDp\" ";
+			
+			if (fourthDpMenuList.length==0) {
+				thirdDpMenuStr += " class=\"none_child\" ";
+			} 
+			if (thirdDpMenuList[i].linkUrl == null) {
+				thirdDpMenuStr += "style=\"cursor:pointer\">"	;
+			}else {
+				thirdDpMenuStr += "style=\"cursor:pointer\" href=\"#\" onclick=\"javascript:fn_sendMenuId('"+ thirdDpMenuList[i].menuId + "','"+thirdDpMenuList[i].linkUrl+"');"
+				+"return false;\">";
+			}
+			thirdDpMenuStr+=thirdDpMenuList[i].menuNm + "</a>";
+
+			if (fourthDpMenuList.length>0) {
+				thirdDpMenuStr += "<ul class=\"group_child\">";
+				$.each( fourthDpMenuList, function(j) {
+					thirdDpMenuStr += "<li>";
+					thirdDpMenuStr += "<a ";
+					if(selectedId == fourthDpMenuList[j].menuId){
+						thirdDpMenuStr +="class=\"ov\" ";
+					}
+					if(fourthDpMenuList[j].linkUrl != null){
+						thirdDpMenuStr += "name=\"fourthDpMenu\" class=\"fourthDpMenu\" style=\"cursor:pointer\" href=\"#\" onclick=\"javascript:fn_sendMenuId('"+ fourthDpMenuList[j].menuId + "','"+fourthDpMenuList[j].linkUrl+"');"
+						+"return false;\">";
+					}
+					thirdDpMenuStr += "<span>" + fourthDpMenuList[j].menuNm + "</span>";
+					thirdDpMenuStr += "</a>";
+					thirdDpMenuStr += "</li>";
+				});
+				thirdDpMenuStr += "</ul>";
+			}
+			thirdDpMenuStr += "</li>";
+		});
+	}
+	var thirdScript = '';
+	thirdScript += "<script>";
+	thirdScript += "	$('.fourthDpMenu').click(function(){";
+	thirdScript += "		$(this).addClass('ov');";
+	thirdScript += "	});";
+	thirdScript += "	$(\"a[name=secondMenu]\").click(function(){";
+	thirdScript += "		$(\"a[name=thridDp\").each(function() {";
+	thirdScript += "			$(this).removeClass('ov');";
+	thirdScript += "		});";
+	thirdScript += "	});";
+	thirdScript += "	$(\"a[name=firstMenu]\").click(function(){";
+	thirdScript += "		$(\"#firstDpMenu\").hide();";
+	thirdScript += "	});";
+	thirdScript += "	lnb(["+seqNo+",])";
+	thirdScript += "<\/script>";
+	$("#thirdDpMenu").children().remove();
+	$("#thirdDpMenu").append(thirdDpMenuStr);
+	$("#thirdDpMenu").append(thirdScript);
+}
+
+/**
+ * nav 메뉴를 출력한다 
+ * @param menu 메뉴vo
+ * @param menuMap   메뉴맵<메뉴아이디,메뉴vo>
+ * @param subMenuMap  서브 매뉴맵<매뉴아이디,서브매뉴리스트>
+ * @param menuDfno  메뉴 depth
+ * @param firstId  1depth 메뉴아이디 
+ * @param secondId 2depth 메뉴아이디 
+ * @param thirdId  3depth 메뉴아이디 
+ */
+function fn_navMenu(menu, menuMap, subMenuMap, menuDfno,firstId,secondId,thirdId) {
+	
+	if(secondId==null || secondId==''){
+		return;
+	}
+	var navMenuStr = '';
+	menuDfno*=1;
+	navMenuStr+="<a class=\"home\" href=\"/index.paid\" title=\"HOME\">H</a> ";
+	if(menuDfno>0){
+		var secondDpMenuList = subMenuMap[firstId];
+		var thirdDpMenuList = subMenuMap[secondDpMenuList[0].menuId];
+		var fourthDpMenuList = subMenuMap[thirdDpMenuList[0].menuId];
+		if(menuMap[secondId].linkUrl==null){
+			if(secondDpMenuList[0].linkUrl==null){
+				if(thirdDpMenuList[0].linkUrl==null){
+					navMenuStr+="<a href=\"javascript:fn_sendMenuId('" + fourthDpMenuList[0].menuId +"','"+fourthDpMenuList[0].linkUrl+"')\">"+menuMap[firstId].menuNm+"</a>";
+				}else{
+					navMenuStr+="<a href=\"javascript:fn_sendMenuId('" + thirdDpMenuList[0].menuId +"','"+thirdDpMenuList[0].linkUrl+"')\">"+menuMap[firstId].menuNm+"</a>";
+				}
+			}else{
+				navMenuStr+="<a href=\"javascript:fn_sendMenuId('" + secondDpMenuList[0].menuId +"','"+secondDpMenuList[0].linkUrl+"')\">"+menuMap[firstId].menuNm+"</a>";
+			}
+		}else{
+			navMenuStr+="<a href=\"javascript:fn_sendMenuId('" + menuMap[secondId].menuId +"','"+menuMap[secondId].linkUrl+"')\">"+menuMap[firstId].menuNm+"</a>";
+		}
+	}
+	if(menuDfno>1){
+		var thirdDpMenuList = subMenuMap[secondId];
+		var fourthDpMenuList = subMenuMap[thirdDpMenuList[0].menuId];
+		if(menuMap[secondId].linkUrl==null){
+			if(thirdDpMenuList[0].linkUrl==null){
+				navMenuStr+="<a href=\"javascript:fn_sendMenuId('" + fourthDpMenuList[0].menuId +"','"+fourthDpMenuList[0].linkUrl+"')\">"+menuMap[secondId].menuNm+"</a>";
+			} else{
+				navMenuStr+="<a href=\"javascript:fn_sendMenuId('" + thirdDpMenuList[0].menuId +"','"+thirdDpMenuList[0].linkUrl+"')\">"+menuMap[secondId].menuNm+"</a>";
+			}
+		} else{
+			navMenuStr+="<a href=\"javascript:fn_sendMenuId('" + menuMap[secondId].menuId +"','"+menuMap[secondId].linkUrl+"')\">"+menuMap[secondId].menuNm+"</a>";
+		}
+	}
+	if(menuDfno>2){
+		var navMenuList=subMenuMap[secondId];
+		navMenuStr+="<a href=\"#\">"+menuMap[thirdId].menuNm+"<span class=\"arr\"></span></a>";
+		navMenuStr+="<ul class=\"nav_shortcut\">";
+		$ .each( navMenuList, function(i) {
+			if(navMenuList[i].linkUrl==null ){
+				navMenuStr += "<li><a href=\"#\" onclick=\"javascript:fn_sendMenuId('"+ subMenuMap[navMenuList[i].menuId][0].menuId + "','"+subMenuMap[navMenuList[i].menuId][0].linkUrl+"');"
+				+"return false;\">"+navMenuList[i].menuNm+"</a></li>";
+			}else{
+				navMenuStr += "<li><a href=\"#\" onclick=\"javascript:fn_sendMenuId('"+ navMenuList[i].menuId + "','"+navMenuList[i].linkUrl+"');"
+				+"return false;\">"+navMenuList[i].menuNm+"</a></li>";
+			}
+		});
+		navMenuStr+="</ul> ";
+	}
+	navMenuStr+="<script>";
+	navMenuStr+="	navLocateShortCut();";
+	navMenuStr+="<\/script>";
+	$("#navMenu").children().remove();
+	$("#navMenu").append(navMenuStr);
+
+	//title에 메뉴 내비게이션 표시
+	if(menuMap!=null) {
+		var navMenuStr = "";
+		
+		if(firstId!=null && firstId!="" && menuMap[firstId].menuNm!=null && menuMap[firstId].menuNm!="") {
+			navMenuStr += menuMap[firstId].menuNm;
+			
+			if(secondId!=null && secondId!="" && menuMap[secondId].menuNm!=null && menuMap[secondId].menuNm!="") {
+				navMenuStr += " > " + menuMap[secondId].menuNm;
+				
+				if(thirdId!=null && thirdId!="" && menuMap[thirdId].menuNm!=null && menuMap[thirdId].menuNm!="") {
+					navMenuStr += " > " + menuMap[thirdId].menuNm;
+				}
+			}
+		}
+
+		if(navMenuStr != "") {
+			var title = $(document).attr("title") + " | " + navMenuStr;
+			$(document).attr("title", title);
+		}
+	}
+}
+
+//팝업 조회
+function fn_popup(popSctnCd){
+	var url = "/paid/syscmmn/selectPopupAt.npaid";
+	var params = {"popBltnTrgtSctnCd":popSctnCd};
+	var options = $.sendAjaxReq.setOptions(url, "post", params, true, fn_callPopup, fn_popupErrorMsg);
+	$.sendAjaxReq.start(options);
+	
+	function fn_callPopup(result){
+		for(var i=0 ; i < result.popupList.length ; i++){
+			var id = result.popupList[i].pbntPopId;
+			var width = result.popupList[i].popWt;
+			var height = result.popupList[i].popHg;
+			
+			var name = "popStp_"+id;
+			
+			if(document.cookie.indexOf(name) == -1){
+				var dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : screen.left;
+
+			    var screenWidth = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+			    var screenHeight = window.screen.availHeight;
+
+			    var left = ((screenWidth / 2) - (width / 2)) + dualScreenLeft + (i*10);
+			    var top = ((screenHeight / 2) - (height / 2)) + (i*10);
+				
+				var size = "left="+left+", top="+top+", width="+width+", height="+height;
+				var param = {"pbntPopId":id};
+				window.open("/paid/syscmmn/selectPopup.paid?pbntPopId="+id,'NewWindow'+(i+1),size);
+			}
+		}
+	}
+}
+
+//AJAX 수행 후 오류 처리
+function fn_popupErrorMsg(request, status, error) {
+	jAlert('처리 중 오류가 발생하였습니다.', null, '알림');
+	console.log("["+request.status+"]");
+}
+
+//동영상Play
+function fn_moviePlay(atchFileGrpId, atchFileId) {
+	var param = {
+				'atchFileGrpId' : atchFileGrpId,	
+				'atchFileId' : atchFileId
+			} 
+	
+    gfn_openPopupPost("moviePlayerPopup", param, "moviePlayerPopup", "/paid/syscmmn/moviePlayer.npaid", 1042, 713);
+}
+
+//세션 확인 타이머 함수
+function fn_setViewTimer() {  
+
+    i_remainMinute = parseInt(i_gRemainSecond / 60);
+    i_remainSecond = i_gRemainSecond % 60;
+    //console.log("[i_gRemainSecond : "+ i_gRemainSecond + "]");
+    //console.log("[i_remainMinute.slice(-3, i_remainMinute.length) : "+ i_remainMinute.toString().slice(-3, i_remainMinute.length) + "]");
+    
+    if (i_gRemainSecond > 0) {
+        $("#timer, #mobile_timer").empty();
+        $("#timer, #mobile_timer").append(i_remainMinute.toString().slice(-3, i_remainMinute.length) + ":" + fn_Lpad(i_remainSecond, 2)); // hh:mm 표기
+        
+        if(i_remainMinute < 1) {
+            $("#popupSecond").html(i_gRemainSecond);
+            
+            if(!isSessionPopup) {
+                fn_sessionPopupOpen();                    
+            }
+        }
+        
+        i_gRemainSecond--;
+        g_haederTimer = setTimeout("fn_setViewTimer()", 1000);
+   
+    } else {
+        fn_userLogout();
+    }
+}
+
+function fn_sessionExtend() {
+	var isAuthenticated;
+    $.ajax({
+        url: "/nep/cmmn/uCoSessionTimeCheck.npaid",
+        type: "POST",
+        dataType: "json",
+        success:function(data) {
+        	i_gRemainSecond = data.sessionInterval;
+        	isAuthenticated = data.isAuthenticated;
+        	console.log("[fn_sessionExtend, i_gRemainSecond : "+ i_gRemainSecond + ", isAuthenticated : " + isAuthenticated +"]");
+
+        	// 신청화면 세션 리셋
+        	if( isFunctionDefined('clearCheckSession')  ) {
+        		clearCheckSession();
+        	}
+
+            if(isSessionPopup) {
+                fn_sessionPopupClose();                    
+            }
+            // 세션유효여부            
+            if (!isAuthenticated ){
+            	console.log("isAuthenticated is false");
+            	location.href = "/index.npaid";
+            }
+            
+        }
+    });        
+}
+
+
+function fn_userLogout() {
+    
+	var isEpeople = "Y";
+	var param = {
+			"isEpeople" : isEpeople
+	}
+
+	var url = contexts + "/nep/crtf/sessionTimeOut.npaid";
+	var options = $.sendAjaxReq.setOptions(url, "post", param, true, fn_sessionExtendTimeOutCallback, fn_sessionExtendTimeOutErrorMsg);
+	$.sendAjaxReq.start(options);    
+}
+
+function fn_sessionPopupOpen() {
+    isSessionPopup = true;
+    $('#session-extend-popup').bPopup({
+    	modal:true
+       });
+}
+
+function fn_sessionPopupClose() {
+    isSessionPopup = false;
+    $('#session-extend-popup').bPopup().close();
+}
+
+function fn_Lpad(str, len) {
+    
+    str = str + "";
+    while(str.length < len){
+    	str = "0"+ str;
+    }
+    return str;
+}
+
+/**
+ * 
+ */
+function fn_sessionExtendTimeOutCallback(data) {
+	//console.log("fn_sessionExtendTimeOutCallback");
+	location.href = "/index.npaid";
+}
+
+/**
+ * 에러 메세지
+ */
+function fn_sessionExtendTimeOutErrorMsg() {	
+	//console.log("fn_sessionExtendTimeOutErrorMsg");
+	location.href = "/index.npaid";
+}
+/**
+ * function 여부확인
+ */
+function isFunctionDefined(functionName) {	
+	if(eval("typeof("+functionName+") == typeof(Function)")) {		
+		return true;
+	}		
+}

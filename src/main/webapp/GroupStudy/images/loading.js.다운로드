@@ -1,0 +1,40 @@
+(function($) {
+
+	$.paidLoading = {
+
+			/**
+		 * 로딩바 시작(전체 화면)
+		 */
+		startFullScreen : function() {
+			
+			$("body").prepend($(".loading"));
+			$(".loading").css("display","block");
+		},
+
+		/**
+		 * 로딩바 시작(적용을 원하는 부분)
+		 * @param code
+		 */
+		start : function(obj) {
+			$("."+obj).append($(".loading"));
+			$(".loading").css("display","block");		
+                
+		},
+
+		/**
+		 * 로딩바 삭제
+		 * @param val 
+		 */
+		remove : function() {
+			$(".loading").css("display","none");
+		}
+	};
+	
+
+})(jQuery);
+
+$(window).on("load",function(){ 
+	 
+	$(".loading").css("display","none");
+	
+});
